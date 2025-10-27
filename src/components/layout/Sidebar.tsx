@@ -7,11 +7,12 @@ import type { PostCategory } from '@/types';
  * - 카테고리 네비게이션
  */
 export default function Sidebar() {
-  const categories: { name: PostCategory; href: string }[] = [
-    { name: '자기소개', href: '/about' },
-    { name: '학습내용', href: '/' },
-    { name: '트러블슈팅', href: '/category/troubleshooting' },
-    { name: '프로젝트', href: '/category/projects' },
+  const categories: { name: PostCategory | '전체보기'; href: string; icon?: string }[] = [
+    { name: '자기소개', href: '/about', icon: '👋' },
+    { name: '학습내용', href: '/', icon: '📚' },
+    { name: '트러블슈팅', href: '/category/troubleshooting', icon: '🔧' },
+    { name: '프로젝트', href: '/category/projects', icon: '🚀' },
+    { name: '전체보기', href: '/posts', icon: '📖' },
   ];
 
   return (
@@ -41,6 +42,7 @@ export default function Sidebar() {
                 href={category.href}
                 className="block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               >
+                {category.icon && <span className="mr-2">{category.icon}</span>}
                 {category.name}
               </Link>
             </li>

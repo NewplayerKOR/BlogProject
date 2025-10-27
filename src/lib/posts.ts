@@ -9,7 +9,7 @@ import type { Post, PostSummary, PostCategory } from '@/types';
 const postsDirectory = path.join(process.cwd(), 'src/content/posts');
 
 /**
- * 모든 포스트의 요약 정보를 가져옵니다
+ * 모든 포스트의 요약 정보를 가져옵니다 (하위 폴더 포함)
  */
 export function getAllPosts(): PostSummary[] {
   // content/posts 폴더가 없으면 빈 배열 반환
@@ -17,30 +17,40 @@ export function getAllPosts(): PostSummary[] {
     return [];
   }
 
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = fileNames
-    .filter((fileName) => fileName.endsWith('.md'))
-    .map((fileName) => {
-      // 파일명에서 .md 제거하여 slug 생성
-      const slug = fileName.replace(/\.md$/, '');
+  const allPostsData: PostSummary[] = [];
 
-      // 파일 내용 읽기
-      const fullPath = path.join(postsDirectory, fileName);
-      const fileContents = fs.readFileSync(fullPath, 'utf8');
+  // 재귀적으로 모든 하위 폴더 탐색
+  function readDirectory(dir: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-      // gray-matter로 메타데이터 파싱
-      const { data } = matter(fileContents);
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
 
-      return {
-        slug,
-        title: data.title || 'Untitled',
-        date: data.date || new Date().toISOString(),
-        category: data.category || '학습내용',
-        tags: data.tags || [],
-        description: data.description || '',
-        thumbnail: data.thumbnail,
-      } as PostSummary;
-    });
+      if (entry.isDirectory()) {
+        // 디렉토리면 재귀 호출
+        readDirectory(fullPath);
+      } else if (entry.name.endsWith('.md')) {
+        // .md 파일이면 처리
+        const slug = entry.name.replace(/\.md$/, '');
+        const fileContents = fs.readFileSync(fullPath, 'utf8');
+
+        // gray-matter로 메타데이터 파싱
+        const { data } = matter(fileContents);
+
+        allPostsData.push({
+          slug,
+          title: data.title || 'Untitled',
+          date: data.date || new Date().toISOString(),
+          category: data.category || '학습내용',
+          tags: data.tags || [],
+          description: data.description || '',
+          thumbnail: data.thumbnail,
+        });
+      }
+    }
+  }
+
+  readDirectory(postsDirectory);
 
   // 날짜순으로 정렬 (최신순)
   return allPostsData.sort((a, b) => {
@@ -57,11 +67,39 @@ export function getPostsByCategory(category: PostCategory): PostSummary[] {
 }
 
 /**
- * 특정 slug의 포스트 전체 내용을 가져옵니다
+ * 특정 slug의 포스트 전체 내용을 가져옵니다 (하위 폴더 포함)
  */
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    const fullPath = path.join(postsDirectory, `${slug}.md`);
+    // 모든 하위 폴더에서 파일 찾기
+    function findFile(dir: string): string | null {
+      if (!fs.existsSync(dir)) {
+        return null;
+      }
+
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+          const found = findFile(fullPath);
+          if (found) return found;
+        } else if (entry.name === `${slug}.md`) {
+          return fullPath;
+        }
+      }
+
+      return null;
+    }
+
+    const fullPath = findFile(postsDirectory);
+    
+    if (!fullPath) {
+      console.error(`Post not found: ${slug}`);
+      return null;
+    }
+
     const fileContents = fs.readFileSync(fullPath, 'utf8');
 
     // 메타데이터와 콘텐츠 분리
@@ -98,10 +136,25 @@ export function getAllPostSlugs(): string[] {
     return [];
   }
 
-  const fileNames = fs.readdirSync(postsDirectory);
-  return fileNames
-    .filter((fileName) => fileName.endsWith('.md'))
-    .map((fileName) => fileName.replace(/\.md$/, ''));
+  const slugs: string[] = [];
+
+  function readDirectory(dir: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        readDirectory(fullPath);
+      } else if (entry.name.endsWith('.md')) {
+        slugs.push(entry.name.replace(/\.md$/, ''));
+      }
+    }
+  }
+
+  readDirectory(postsDirectory);
+
+  return slugs;
 }
 
 /**
