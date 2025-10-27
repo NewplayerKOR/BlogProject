@@ -1,11 +1,12 @@
 import { getPostsByCategory } from '@/lib/posts';
+import Image from "next/image";
 
 /**
  * 자기소개 페이지
  */
 export const metadata = {
   title: '자기소개 | NewplayerKOR 블로그',
-  description: 'NewplayerKOR을 소개합니다.',
+  description: '박태규(NewplayerKOR)를 소개합니다.',
 };
 
 export default function AboutPage() {
@@ -16,14 +17,21 @@ export default function AboutPage() {
     <div className="max-w-4xl mx-auto px-8 py-12">
       {/* 헤더 */}
       <header className="mb-12 text-center">
-        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-blue-500 flex items-center justify-center">
-          <span className="text-6xl font-bold text-white">NK</span>
-        </div>
+          <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
+              <Image
+                  src="https://pub-8645696b761c495498795a6b2b48c318.r2.dev/ProfileImage/DrawProfile.png" // ✅ 여기에 본인 R2 이미지 URL 넣기
+                  alt="프로필 이미지"
+                  fill // 부모 div 크기(w-32 h-32)에 맞춰 꽉 채우기
+                  sizes="128px" // 이미지 최적화용
+                  className="object-cover" // 이미지 비율 유지하며 꽉 채움
+                  priority // 초기 렌더링 시 미리 로드
+              />
+          </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          NewplayerKOR
+          박태규 (NewplayerKOR)
         </h1>
         <p className="text-xl text-gray-600">
-          개발자 / 학습자 / 문제 해결사
+          백엔드 개발자
         </p>
       </header>
 
@@ -31,40 +39,118 @@ export default function AboutPage() {
       <div className="prose prose-lg max-w-none">
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">👋 안녕하세요</h2>
-          <p className="text-gray-700 leading-relaxed">
-            끊임없이 배우고 성장하는 개발자 NewplayerKOR입니다. 
-            이 블로그는 제가 학습한 내용과 경험을 기록하고 공유하기 위해 만들었습니다.
+          <p className="text-black leading-relaxed">
+            끊임없이 배우고 성장하는 백엔드 개발자 박태규입니다. 
+            이 블로그는 제가 학습한 내용과 경험을 기록하고 공유하기 위해 운영하고 있습니다.
           </p>
         </section>
 
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">💻 기술 스택</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              'JavaScript',
-              'TypeScript',
-              'React',
-              'Next.js',
-              'Node.js',
-              'Git',
-            ].map((skill) => (
-              <div
-                key={skill}
-                className="px-4 py-3 bg-gray-100 rounded-lg text-center font-medium text-gray-700"
-              >
-                {skill}
-              </div>
-            ))}
+          
+          {/* 백엔드 */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Backend</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                'Java',
+                'Spring Boot',
+                'JPA',
+                'REST API',
+              ].map((skill) => (
+                <div
+                  key={skill}
+                  className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-center font-medium text-green-800"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 데이터베이스 */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Database</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                'MySQL',
+                'AWS RDS',
+              ].map((skill) => (
+                <div
+                  key={skill}
+                  className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-center font-medium text-blue-800"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 인프라 & 클라우드 */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Infrastructure & Cloud</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                'AWS EC2',
+                'AWS S3',
+                'GCP Compute Engine',
+                'GCP Storage',
+                'Terraform',
+              ].map((skill) => (
+                <div
+                  key={skill}
+                  className="px-4 py-3 bg-orange-50 border border-orange-200 rounded-lg text-center font-medium text-orange-800"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 보안 & 인증 */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Security & Auth</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                'Spring Security',
+                'JWT',
+                'OAuth',
+              ].map((skill) => (
+                <div
+                  key={skill}
+                  className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-center font-medium text-red-800"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DevOps */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">DevOps</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                'GitHub Actions(CI/CD)'
+              ].map((skill) => (
+                <div
+                  key={skill}
+                  className="px-4 py-3 bg-purple-50 border border-purple-200 rounded-lg text-center font-medium text-purple-800"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">🎯 관심사</h2>
-          <ul className="space-y-2 text-gray-700">
-            <li>• 웹 프론트엔드 개발</li>
-            <li>• 사용자 경험 (UX) 개선</li>
-            <li>• 성능 최적화</li>
-            <li>• 코드 품질과 유지보수성</li>
+          <ul className="space-y-2 text-black">
+            <li>• 백엔드 개발</li>
+            <li>• RESTful API 설계</li>
+            <li>• 클라우드 인프라 구축</li>
+            <li>• 보안 및 인증 시스템</li>
           </ul>
         </section>
 
@@ -82,23 +168,12 @@ export default function AboutPage() {
               </svg>
               GitHub
             </a>
-            <a
-              href="mailto:contact@example.com"
-              className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Email
-            </a>
           </div>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">📝 블로그 소개</h2>
-          <p className="text-gray-700 leading-relaxed">
-            이 블로그는 <strong>Next.js 16</strong>, <strong>React 19</strong>, 
-            <strong>TypeScript</strong>로 직접 구축했습니다. 
+          <p className="text-black leading-relaxed">
             학습한 내용을 기록하고, 문제 해결 과정을 공유하며, 
             프로젝트 경험을 정리하는 공간입니다.
           </p>

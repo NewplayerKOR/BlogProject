@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { PostCategory } from '@/types';
 
 /**
@@ -17,18 +18,24 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 p-6 flex flex-col">
-      {/* 프로필 섹션 */}
-      <div className="mb-8">
-        <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center">
-          <span className="text-5xl font-bold text-white">NK</span>
+        {/* 프로필 섹션 */}
+        <div className="mb-8">
+            <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
+                <Image
+                    src="https://pub-8645696b761c495498795a6b2b48c318.r2.dev/ProfileImage/DrawProfile.png" // ✅ 여기에 본인 R2 이미지 URL 넣기
+                    alt="프로필 이미지"
+                    fill // 부모 div 크기(w-32 h-32)에 맞춰 꽉 채우기
+                    sizes="128px" // 이미지 최적화용
+                    className="object-cover" // 이미지 비율 유지하며 꽉 채움
+                    priority // 초기 렌더링 시 미리 로드
+                />
+            </div>
+
+            <h2 className="text-xl font-bold text-center text-gray-800">
+                NewplayerKOR
+            </h2>
+            <p className="text-sm text-center text-gray-600 mt-2">개발 블로그</p>
         </div>
-        <h2 className="text-xl font-bold text-center text-gray-800">
-          NewplayerKOR
-        </h2>
-        <p className="text-sm text-center text-gray-600 mt-2">
-          개발 블로그
-        </p>
-      </div>
 
       {/* 카테고리 네비게이션 */}
       <nav className="flex-1">

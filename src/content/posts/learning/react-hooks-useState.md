@@ -4,7 +4,7 @@ date: "2025-01-15"
 category: "학습내용"
 tags: ["React", "Hooks", "useState", "JavaScript"]
 description: "React의 가장 기본적인 훅인 useState에 대해 깊이 있게 알아봅니다."
-thumbnail: "/images/posts/react-hooks.jpg"
+thumbnail: "https://pub-8645696b761c495498795a6b2b48c318.r2.dev/learning-imgs/%EA%B2%8C%EC%8B%9C%ED%95%A0%20%EC%9D%B4%EB%AF%B8%EC%A7%80.png"
 ---
 
 # React useState 훅 완벽 가이드
