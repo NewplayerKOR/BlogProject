@@ -68,7 +68,10 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const { data, content } = matter(fileContents);
 
     // 마크다운을 HTML로 변환
-    const processedContent = await remark().use(html).process(content);
+    // prism.js 형식의 코드 블록을 위해 클래스 추가
+    const processedContent = await remark()
+      .use(html, { sanitize: false })
+      .process(content);
     const contentHtml = processedContent.toString();
 
     return {
@@ -99,4 +102,27 @@ export function getAllPostSlugs(): string[] {
   return fileNames
     .filter((fileName) => fileName.endsWith('.md'))
     .map((fileName) => fileName.replace(/\.md$/, ''));
+}
+
+/**
+ * 특정 포스트의 이전 글과 다음 글을 가져옵니다
+ */
+export function getAdjacentPosts(currentSlug: string): {
+  prevPost: PostSummary | null;
+  nextPost: PostSummary | null;
+} {
+  const allPosts = getAllPosts(); // 이미 날짜순으로 정렬됨 (최신순)
+  const currentIndex = allPosts.findIndex((post) => post.slug === currentSlug);
+
+  if (currentIndex === -1) {
+    return { prevPost: null, nextPost: null };
+  }
+
+  // 최신순 정렬이므로:
+  // - nextPost는 현재보다 이전 인덱스 (더 최신 글)
+  // - prevPost는 현재보다 다음 인덱스 (더 오래된 글)
+  const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+  const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
+
+  return { prevPost, nextPost };
 }
