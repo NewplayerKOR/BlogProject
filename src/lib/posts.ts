@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
+import remarkGfm from 'remark-gfm';
 import type { Post, PostSummary, PostCategory } from '@/types';
 
 // 포스트 디렉토리 경로
@@ -106,8 +107,9 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const { data, content } = matter(fileContents);
 
     // 마크다운을 HTML로 변환
-    // prism.js 형식의 코드 블록을 위해 클래스 추가
+    // remarkGfm: GitHub Flavored Markdown 지원 (테이블, 취소선 등)
     const processedContent = await remark()
+      .use(remarkGfm)
       .use(html, { sanitize: false })
       .process(content);
     const contentHtml = processedContent.toString();
