@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import type { PostCategory } from '@/types';
 
 /**
  * 좌측 사이드바 컴포넌트
@@ -8,7 +7,7 @@ import type { PostCategory } from '@/types';
  * - 카테고리 네비게이션
  */
 export default function Sidebar() {
-  const categories: { name: PostCategory | '전체보기'; href: string; icon?: string }[] = [
+  const categories: { name: string; href: string; icon?: string }[] = [
     { name: '자기소개', href: '/about', icon: '👋' },
     { name: '학습내용', href: '/', icon: '📚' },
     { name: '트러블슈팅', href: '/category/troubleshooting', icon: '🔧' },

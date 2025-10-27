@@ -1,17 +1,15 @@
-import { getPostsByCategory } from '@/lib/posts';
 import Image from "next/image";
 
 /**
  * 자기소개 페이지
+ * 블로그 운영자의 프로필과 기술스택을 소개하는 정적 페이지입니다.
  */
 export const metadata = {
-  title: '자기소개 | NewplayerKOR 블로그',
+  title: '자기소개 | NewplayerKOR 기술 블로그',
   description: '박태규(NewplayerKOR)를 소개합니다.',
 };
 
 export default function AboutPage() {
-  const posts = getPostsByCategory('자기소개');
-  const aboutPost = posts.length > 0 ? posts[0] : null;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
