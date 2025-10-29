@@ -38,7 +38,7 @@ export default function AboutPage() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">👋 안녕하세요</h2>
           <p className="text-black leading-relaxed">
-            끊임없이 배우고 성장하는 백엔드 개발자 박태규입니다. 
+            부족함을 느껴, 계속 배우고 성장하는 백엔드 개발자 박태규입니다.
             이 블로그는 제가 학습한 내용과 경험을 기록하고 공유하기 위해 운영하고 있습니다.
           </p>
         </section>

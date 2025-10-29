@@ -31,6 +31,11 @@ export function getAllPosts(): PostSummary[] {
         // 디렉토리면 재귀 호출
         readDirectory(fullPath);
       } else if (entry.name.endsWith('.md')) {
+        // 템플릿 파일과 특수 파일 제외
+        if (entry.name === 'TEMPLATE.md' || entry.name.startsWith('.')) {
+          continue;
+        }
+
         // .md 파일이면 처리
         const slug = entry.name.replace(/\.md$/, '');
         const fileContents = fs.readFileSync(fullPath, 'utf8');
@@ -38,15 +43,18 @@ export function getAllPosts(): PostSummary[] {
         // gray-matter로 메타데이터 파싱
         const { data } = matter(fileContents);
 
-        allPostsData.push({
-          slug,
-          title: data.title || 'Untitled',
-          date: data.date || new Date().toISOString(),
-          category: data.category || '학습내용',
-          tags: data.tags || [],
-          description: data.description || '',
-          thumbnail: data.thumbnail,
-        });
+        // 유효한 날짜가 있는 포스트만 추가
+        if (data.date && !isNaN(new Date(data.date).getTime())) {
+          allPostsData.push({
+            slug,
+            title: data.title || 'Untitled',
+            date: data.date,
+            category: data.category || '학습내용',
+            tags: data.tags || [],
+            description: data.description || '',
+            thumbnail: data.thumbnail,
+          });
+        }
       }
     }
   }
@@ -149,6 +157,10 @@ export function getAllPostSlugs(): string[] {
       if (entry.isDirectory()) {
         readDirectory(fullPath);
       } else if (entry.name.endsWith('.md')) {
+        // 템플릿 파일과 특수 파일 제외
+        if (entry.name === 'TEMPLATE.md' || entry.name.startsWith('.')) {
+          continue;
+        }
         slugs.push(entry.name.replace(/\.md$/, ''));
       }
     }

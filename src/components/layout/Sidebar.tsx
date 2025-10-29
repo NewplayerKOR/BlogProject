@@ -1,19 +1,36 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 /**
  * 좌측 사이드바 컴포넌트
  * - 프로필 이미지
  * - 카테고리 네비게이션
+ * - 현재 위치 하이라이트
  */
 export default function Sidebar() {
+  const pathname = usePathname();
+
   const categories: { name: string; href: string; icon?: string }[] = [
+    { name: '최신 글', href: '/', icon: '✨' },
     { name: '자기소개', href: '/about', icon: '👋' },
-    { name: '학습내용', href: '/', icon: '📚' },
+    { name: 'TIL', href: '/category/learning', icon: '📚' },
     { name: '트러블슈팅', href: '/category/troubleshooting', icon: '🔧' },
     { name: '프로젝트', href: '/category/projects', icon: '🚀' },
     { name: '전체보기', href: '/posts', icon: '📖' },
   ];
+
+  /**
+   * 현재 경로가 해당 카테고리인지 확인
+   */
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 p-6 flex flex-col">
@@ -42,17 +59,27 @@ export default function Sidebar() {
           Categories
         </h3>
         <ul className="space-y-2">
-          {categories.map((category) => (
-            <li key={category.name}>
-              <Link
-                href={category.href}
-                className="block px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              >
-                {category.icon && <span className="mr-2">{category.icon}</span>}
-                {category.name}
-              </Link>
-            </li>
-          ))}
+          {categories.map((category) => {
+            const active = isActive(category.href);
+            
+            return (
+              <li key={category.name}>
+                <Link
+                  href={category.href}
+                  className={`
+                    block px-4 py-2 rounded-lg transition-all duration-200
+                    ${active 
+                      ? 'bg-blue-100 text-blue-900 font-semibold shadow-sm' 
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  {category.icon && <span className="mr-2">{category.icon}</span>}
+                  {category.name}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

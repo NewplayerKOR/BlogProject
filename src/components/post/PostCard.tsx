@@ -15,9 +15,13 @@ interface PostCardProps {
  * - 태그 표시
  */
 export default function PostCard({ post }: PostCardProps) {
-  const formattedDate = format(new Date(post.date), 'yyyy년 MM월 dd일', {
-    locale: ko,
-  });
+  // 날짜 유효성 검사
+  const date = new Date(post.date);
+  const isValidDate = !isNaN(date.getTime());
+  
+  const formattedDate = isValidDate 
+    ? format(date, 'yyyy년 MM월 dd일', { locale: ko })
+    : '날짜 없음';
 
   return (
     <Link href={`/posts/${post.slug}`}>

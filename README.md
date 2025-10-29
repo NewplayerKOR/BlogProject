@@ -17,13 +17,15 @@ Next.js, React, TypeScript 기반의 개인 기술 블로그 프로젝트입니�
 src/
 ├── app/                      # Next.js App Router
 │   ├── layout.tsx           # 루트 레이아웃
-│   ├── page.tsx             # 홈페이지
+│   ├── page.tsx             # 홈페이지 (최신 글 전체)
 │   ├── about/               # 소개 페이지
 │   ├── category/            # 카테고리별 페이지
-│   │   ├── projects/
-│   │   └── troubleshooting/
+│   │   ├── learning/        # 학습내용
+│   │   ├── projects/        # 프로젝트
+│   │   └── troubleshooting/ # 트러블슈팅
 │   └── posts/               # 개별 포스트 페이지
-│       └── [slug]/
+│       ├── page.tsx         # 전체보기
+│       └── [slug]/          # 포스트 상세
 ├── components/              # 재사용 가능한 컴포넌트
 │   ├── layout/
 │   │   └── Sidebar.tsx     # 좌측 사이드바 (프로필 + 카테고리)
@@ -50,7 +52,7 @@ src/
 
 - ✅ 좌측 사이드바 레이아웃
   - 프로필 이미지 영역
-  - 카테고리 네비게이션 (자기소개, 학습내용, 트러블슈팅, 프로젝트, 전체보기)
+  - 카테고리 네비게이션 (최신 글, 자기소개, 학습내용, 트러블슈팅, 프로젝트, 전체보기)
 - ✅ 마크다운 기반 블로그 시스템
   - 파일 기반 콘텐츠 관리
   - 프론트매터(Front Matter)를 통한 메타데이터 관리

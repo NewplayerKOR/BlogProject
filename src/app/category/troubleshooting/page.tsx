@@ -5,7 +5,7 @@ import { getPostsByCategory } from '@/lib/posts';
  * 트러블슈팅 카테고리 페이지
  */
 export const metadata = {
-  title: '트러블슈팅 | NewplayerKOR 블로그',
+  title: '트러블슈팅 | 기술 블로그',
   description: '개발 중 마주친 문제들과 해결 과정을 기록합니다.',
 };
 
