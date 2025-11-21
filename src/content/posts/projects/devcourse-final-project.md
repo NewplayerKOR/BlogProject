@@ -161,38 +161,9 @@ PATCH /api/v1/archive-requests/{requestId}
 
 ### 시스템 구성도
 
-```
-┌─────────────────┐
-│   Frontend      │
-│  (Next.js 14)   │
-└────────┬────────┘
-         │ HTTP/WebSocket
-         │
-┌────────▼───────────────────────────┐
-│  Load Balancer (Nginx)             │
-└────────┬───────────────────────────┘
-         │
-┌────────▼────────┐
-│  Spring Boot    │ ◄──────► ┌──────────────┐
-│  Application    │          │   AWS S3     │
-│                 │          │ File Storage │
-│  - REST API     │          └──────────────┘
-│  - WebSocket    │
-│  - Security     │
-└────────┬────────┘
-         │
-    ┌────┼────┐
-    │    │    │
-┌───▼──┐ │ ┌──▼──────┐
-│MySQL │ │ │ AI API  │
-│ RDS  │ │ │(Gemini) │
-└──────┘ │ └─────────┘
-         │
-    ┌────▼──────┐
-    │  Redis    │
-    │  (예정)   │
-    └───────────┘
-```
+
+![아키텍처 이미지](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-FourthProject/4%EC%B0%A8%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EC%95%84%ED%82%A4%ED%85%8D%EC%B3%90.drawio.png)
+
 
 ### 도메인 구조
 
