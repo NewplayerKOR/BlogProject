@@ -31,7 +31,7 @@ description: "2차 프로젝트를 Kotlin으로 전환하며 새로운 언어와
 - **Security**: Spring Security, JWT
 - **ORM**: Spring Data JPA
 - **Database**: MySQL
-- **File Storage**: Google Cloud Storage (AWS S3 → GCS 전환)
+- **File Storage**: Google Cloud Storage
 - **Real-time**: WebSocket, Redis Pub/Sub
 - **Deployment**: Google Cloud Platform (GCP), Docker
 
@@ -51,54 +51,56 @@ description: "2차 프로젝트를 Kotlin으로 전환하며 새로운 언어와
 | 석희성 | 백엔드 개발 (채팅), 프론트엔드 배포 |
 | 임홍담 | 백엔드 개발 (회원/인증) |
 
-**참고**: 김선우 팀원이 중도 이탈하여 4명으로 프로젝트 진행
+**참고**: 기존의 팀원 1명이 개인사정으로 중도 이탈하여 4명으로 프로젝트 진행
 
 ## 담당 기능
 
 ### 1. 팀장 역할 (지속)
 - 프로젝트 일정 관리 및 스프린트 운영
 - 팀원 간 작업 분배 및 조율
-- Kotlin 학습 지원 및 코드 리뷰
+- 코드 리뷰
 
 ### 2. 첨부파일 시스템 Kotlin 전환
 
 #### Java → Kotlin 마이그레이션
-
-**Before (Java)**
-```java
-@Service
-public class FileService {
-    private final AmazonS3 s3Client;
-    private final FileRepository fileRepository;
-    
-    public FileService(AmazonS3 s3Client, FileRepository fileRepository) {
-        this.s3Client = s3Client;
-        this.fileRepository = fileRepository;
-    }
-    
-    public FileDto uploadFile(MultipartFile file, Long postId) {
-        validateFile(file);
-        String s3Url = uploadToS3(file);
-        FileEntity fileEntity = saveFileMetadata(s3Url, postId);
-        return FileDto.from(fileEntity);
-    }
-}
-```
-
-**After (Kotlin)**
 ```kotlin
 @Service
-class FileService(
-    private val storageClient: Storage,
-    private val fileRepository: FileRepository
-) {
-    fun uploadFile(file: MultipartFile, postId: Long): FileDto {
-        validateFile(file)
-        val gcsUrl = uploadToGCS(file)
-        val fileEntity = saveFileMetadata(gcsUrl, postId)
-        return FileDto.from(fileEntity)
+@Service
+@Profile("prod") // 프로덕션 환경에서만 이 서비스가 활성화되도록 설정
+class CloudFileStorageService(
+    private val gcsStorage: Storage
+) : FileStorageService {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CloudFileStorageService::class.java)
+    }
+
+    @Value("\${GCP_BUCKET_NAME}")
+    private lateinit var bucketName: String
+
+    @Value("\${file.upload.max-size:10485760}")
+    private var maxFileSize: Long = 0
+
+    override fun storeFile(
+        fileContent: ByteArray,
+        originalFilename: String,
+        contentType: String,
+        subFolder: String
+    ): String {
+        if (fileContent.size > maxFileSize) {
+            throw RuntimeException("파일 크기가 너무 큽니다. 최대 ${maxFileSize / (1024 * 1024)}MB까지 업로드 가능합니다.")
+        }
+        // ... 중략 ...
+
+        return try {
+            gcsStorage.create(blobInfo, fileContent)
+            "https://storage.googleapis.com/$bucketName/$fileNameInStorage"
+        } catch (e: Exception) {
+            throw RuntimeException("클라우드 스토리지 파일 저장 중 오류가 발생했습니다.", e)
+        }
     }
 }
+
 ```
 
 **주요 개선 사항**
@@ -106,26 +108,6 @@ class FileService(
 - Null 안전성 강화 (Nullable 타입 명시)
 - 불필요한 세미콜론 제거
 - `val`/`var` 키워드로 명확한 불변성 표현
-
-#### AWS S3 → Google Cloud Storage 전환
-
-**변경 사항**
-- AWS SDK → Google Cloud Storage Client Library
-- Bucket 설정 및 권한 관리 방식 변경
-- URL 생성 방식 변경 (Presigned URL → Signed URL)
-
-**GCS 업로드 구현**
-```kotlin
-fun uploadToGCS(file: MultipartFile): String {
-    val blobId = BlobId.of(bucketName, generateFileName(file))
-    val blobInfo = BlobInfo.newBuilder(blobId)
-        .setContentType(file.contentType)
-        .build()
-    
-    storage.create(blobInfo, file.bytes)
-    return generatePublicUrl(blobId)
-}
-```
 
 ### 3. GCP 배포
 
@@ -140,60 +122,38 @@ fun uploadToGCS(file: MultipartFile): String {
 2. Service Account 생성 및 권한 설정
 3. Cloud SQL 인스턴스 생성
 4. Compute Engine VM 설정
-5. Docker 이미지 빌드 및 배포
+5. .jar 파일 빌드 및 배포
 6. Nginx 리버스 프록시 설정
 
 ## 프로젝트 아키텍처
 
 ### 시스템 구성도
 
-```
-┌─────────────────┐    HTTPS     ┌─────────────────┐
-│   Frontend      │ ◄──────────► │   Nginx         │
-│   (Vercel)      │              │ (Reverse Proxy) │
-└─────────────────┘              └─────────────────┘
-                                          │
-                                          ▼
-              ┌───────────────────────────────────────┐
-              │   Spring Boot (Kotlin) - GCP VM       │
-              │  ┌──────────────────────────────┐     │
-              │  │  API Gateway                 │     │
-              │  └──────────────────────────────┘     │
-              │            │                          │
-              │  ┌─────────┴───────────────────┐     │
-              │  │  Member  │ Post │ File      │     │
-              │  │  Service │ Svc  │ Service   │     │
-              │  └─────────┬───────────────────┘     │
-              └────────────┼──────────────────────────┘
-                           │
-               ┌───────────┴──────────┐
-               │                      │
-          ┌────▼────┐           ┌────▼────┐
-          │Cloud SQL│           │   GCS   │
-          │ (MySQL) │           │ (Files) │
-          └─────────┘           └─────────┘
-               │
-          ┌────▼────┐
-          │  Redis  │
-          │(Memstore)│
-          └─────────┘
-```
+![시스템 구성도](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-ThirdProject/ThirdProject_SystemArchi.png)
 
 ### 도메인 구조 (Kotlin)
 
 ```
-backend/src/main/kotlin/com/tensionup/
+backend/src/main/java/com/back/
+├── config/             # 애플리케이션 공통 설정
 ├── domain/
+│   ├── admin/          # 관리자 기능
+│   ├── auth/           # 인증 및 권한 관리
+│   ├── chat/           # 채팅 기능
+│   ├── files/          # 파일 관리
 │   ├── member/         # 회원 관리
-│   ├── post/           # 게시판
-│   ├── file/           # 첨부파일 (내가 담당)
-│   ├── trade/          # 거래
-│   └── chat/           # 채팅
-├── global/             # 공통 설정
-│   ├── config/         # GCS, Security 등
-│   ├── exception/      # 예외 처리
-│   └── util/           # 유틸리티
-└── TensionUpApplication.kt
+│   ├── post/           # 게시글 관리
+│   └── trade/          # 거래 관리
+├── global/
+│   ├── exception/      # 예외 정의
+│   ├── globalExceptionHandler/ # 전역 예외 처리
+│   ├── init/           # 초기화 관련
+│   ├── jpa/            # JPA 관련 설정/유틸
+│   ├── rq/             # 요청 관련
+│   ├── rsData/         # 응답 데이터 형식
+│   ├── security/       # 보안 관련 설정
+│   └── springDoc/      # SpringDoc (Swagger) 설정
+└── BackApplication.java
 ```
 
 ## Kotlin으로 전환하며 배운 점
@@ -264,7 +224,7 @@ file?.let { uploadToGCS(it) }
 
 **해결 방법**
 - Kotlin 공식 문서 및 레퍼런스 학습
-- IntelliJ의 Java to Kotlin 자동 변환 활용
+- IntelliJ의 Java to Kotlin 자동 변환 활용 및 수정
 - 팀원들과 코드 리뷰를 통한 상호 학습
 - Spring Boot + Kotlin 공식 가이드 참고
 
@@ -275,16 +235,6 @@ file?.let { uploadToGCS(it) }
 - Cloud Storage (vs S3)
 - Cloud SQL (vs RDS)
 - Compute Engine (vs EC2)
-
-**GCP의 장점**
-- 통합된 콘솔 UI
-- 간편한 Service Account 관리
-- BigQuery 등 데이터 분석 도구 연동 가능
-
-**어려웠던 점**
-- AWS에 익숙해서 GCP 개념 이해 필요
-- Signed URL 생성 방식 차이
-- 권한 설정 방식 차이
 
 ## 주요 기능 (2차 프로젝트와 동일)
 
@@ -298,7 +248,7 @@ file?.let { uploadToGCS(it) }
 - 찜 기능
 - 검색 및 필터링
 
-### 파일 관리 (내가 담당)
+### 파일 관리 (필자 담당)
 - GCS 기반 파일 업로드/다운로드
 - 프로필 이미지 관리
 - 파일 메타데이터 관리
@@ -334,24 +284,7 @@ file?.let { uploadToGCS(it) }
 ## 기술적 도전
 
 ### 1. Kotlin + JPA 설정
-
-**문제**
-- JPA Entity에서 `open` 키워드 필요
-- 기본 생성자 필요
-
-**해결**
-```kotlin
-// build.gradle.kts
-plugins {
-    kotlin("plugin.jpa") version "1.9.0"
-    kotlin("plugin.allopen") version "1.9.0"
-}
-
-allOpen {
-    annotation("jakarta.persistence.Entity")
-    annotation("jakarta.persistence.MappedSuperclass")
-}
-```
+- 초기 Kotlin, Springboot 세팅
 
 ### 2. GCS 인증 설정
 
@@ -362,16 +295,6 @@ allOpen {
 **해결**
 - 환경 변수로 Service Account 키 경로 관리
 - `GOOGLE_APPLICATION_CREDENTIALS` 환경 변수 설정
-
-```kotlin
-@Configuration
-class GCSConfig {
-    @Bean
-    fun storage(): Storage {
-        return StorageOptions.getDefaultInstance().service
-    }
-}
-```
 
 ### 3. Nullable 타입 처리
 
@@ -395,7 +318,7 @@ val fileName = file.originalFilename ?: "unknown.file"
 
 ### 정량적 성과
 - **Java → Kotlin 전환 완료**: 전체 백엔드 코드 마이그레이션
-- **코드 라인 수 감소**: 약 20-30% 감소 (Kotlin의 간결성)
+- **코드 라인 수 증가** -> 왜? (테스트 코드 추가)
 - **GCP 배포 완료**: 실제 서비스 배포
 
 ### 정성적 성과
@@ -427,7 +350,6 @@ val fileName = file.originalFilename ?: "unknown.file"
 
 **Spring Boot와의 호환성**
 - Spring Boot는 Kotlin을 First-class로 지원
-- 설정 파일을 Kotlin DSL로 작성 가능
 - JPA, Spring Security 등 주요 라이브러리 호환
 
 ### 3. 멀티 클라우드 이해
@@ -435,7 +357,6 @@ val fileName = file.originalFilename ?: "unknown.file"
 **AWS vs GCP**
 - 각 클라우드의 철학과 강점 이해
 - 서비스 간 매핑 (S3 ↔ GCS, RDS ↔ Cloud SQL)
-- 벤더 종속성 최소화 설계의 중요성
 
 **마이그레이션 포인트**
 - Storage API 추상화 필요성
@@ -444,7 +365,7 @@ val fileName = file.originalFilename ?: "unknown.file"
 
 ### 4. 팀장으로서의 지속적 성장
 
-**3차 연속 팀장 경험**
+**연속 팀장 경험**
 - 익숙해진 프로세스 운영
 - 팀원 변화 대응 (중도 이탈)
 - 학습 곡선 관리 (새로운 언어)
@@ -457,13 +378,9 @@ val fileName = file.originalFilename ?: "unknown.file"
    - Kotlin 고급 기능 활용 미흡
    - Coroutine 미적용
 
-2. **테스트 코드 미비**
-   - 마이그레이션 후 테스트 보강 필요
-   - Kotlin 테스트 프레임워크 미활용
-
-3. **성능 측정 부족**
+2. **성능 측정 부족**
    - Java vs Kotlin 성능 비교 미실시
-   - GCS vs S3 성능 비교 부족
+   
 
 ### 향후 개선 방향
 
@@ -472,25 +389,21 @@ val fileName = file.originalFilename ?: "unknown.file"
    - Flow를 활용한 리액티브 프로그래밍
    - DSL 작성
 
-2. **테스트 강화**
-   - Kotest 활용
-   - MockK를 통한 모킹
-   - 통합 테스트 작성
-
-3. **성능 최적화**
+2. **성능 최적화**
    - 쿼리 최적화
    - 캐싱 전략 개선
-   - 비동기 파일 업로드
 
 ## 마치며
 
-3차 프로젝트는 2차 프로젝트의 연장선이면서도, **새로운 언어(Kotlin)**와 **새로운 클라우드(GCP)**를 경험하는 도전적인 프로젝트였습니다.
+3차 프로젝트는 2차 프로젝트의 연장선이면서도, **새로운 언어(Kotlin)**와 **새로운 클라우드(GCP)**에 익숙해지는 경험을하는 도전적인 프로젝트였습니다.
 
-Kotlin으로 전환하면서 코드가 더 간결하고 안전해졌으며, Null 안전성 덕분에 런타임 에러를 사전에 방지할 수 있었습니다. GCP로 전환하면서 AWS만 알던 시야를 넓힐 수 있었고, 멀티 클라우드 환경에 대한 이해도를 높일 수 있었습니다.
+Kotlin으로 전환하면서 코드가 더 간결하고 안전해졌으며, Null 안전성 덕분에 런타임 에러를 사전에 방지할 수 있었습니다. GCP를 사용하며 AWS만 알던 시야를 넓힐 수 있었고, 멀티 클라우드 환경에 대한 이해도를 높일 수 있었습니다.
 
-3번 연속 팀장을 맡으면서 리더십과 프로젝트 관리 능력이 향상되었고, 팀원 중도 이탈이라는 예상치 못한 상황에서도 프로젝트를 성공적으로 완수할 수 있었습니다.
+2번 연속 팀장을 맡으면서 리더십과 프로젝트 관리 능력이 향상되었고, 팀원 중도 이탈이라는 예상치 못한 상황에서도 프로젝트를 성공적으로 완수할 수 있었습니다.
 
 이번 경험을 통해 **새로운 기술을 빠르게 학습하고 적용하는 능력**과 **변화에 유연하게 대응하는 자세**를 배울 수 있었습니다. 앞으로도 지속적으로 새로운 기술을 탐구하고, 실전 프로젝트에 적용하는 개발자가 되고 싶습니다.
+
+마치며, 2차 프로젝트부터 함께해준 팀원분들에게 감사합니다.
 
 ## 링크
 
