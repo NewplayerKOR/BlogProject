@@ -13,7 +13,7 @@ description: "무형자산 거래 플랫폼을 개발한 데브코스 2차 팀 �
 - **프로젝트 기간**: 2025_07_22 - 2025_08_07(17일)
 - **팀 구성**: 6명 (백엔드 중심 + 프론트엔드 공동 개발)
 - **나의 역할**: 팀장, 백엔드 개발 - 첨부파일 시스템 및 백엔드 배포 담당
-- **배포 상태**: Vercel (프론트엔드) + AWS EC2 (백엔드) 배포 완료 (현재 사이트 활성화 X)
+- **배포 상태**: ~~Vercel (프론트엔드) + AWS EC2 (백엔드) 배포 완료~~ (현재 비활성화)
 ___
 
 ### 프로젝트 배경
@@ -52,6 +52,10 @@ ___
 | 임홍담      | 백엔드 개발 (회원/인증) |
 | 공동       | 프론트엔드 개발 |
 
+
+## WBS
+![WBS](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-SecondProject/2%EC%B0%A8%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20WBS.png)
+
 ## 담당 기능 및 역할
 
 ### 1. 팀장 역할
@@ -80,36 +84,16 @@ ___
 - 파일 상세 정보 조회
 - 부적절한 파일 삭제
 
-#### 기술적 구현
-
-```java
-// S3 파일 업로드 서비스 예시 구조
-@Service
-public class FileService {
-    private final AmazonS3 s3Client;
-    private final FileRepository fileRepository;
-    
-    public FileDto uploadFile(MultipartFile file, Long postId) {
-        // 1. 파일 검증
-        validateFile(file);
-        
-        // 2. S3 업로드
-        String s3Url = uploadToS3(file);
-        
-        // 3. 메타데이터 저장
-        FileEntity fileEntity = saveFileMetadata(s3Url, postId);
-        
-        return FileDto.from(fileEntity);
-    }
-}
-```
-
 **API 엔드포인트**
-- `POST /api/files` - 파일 업로드
-- `GET /api/files/{postId}` - 게시글 첨부파일 목록 조회
-- `DELETE /api/files/{fileId}` - 파일 삭제
-- `POST /api/profile/image` - 프로필 이미지 업로드
-- `DELETE /api/profile/image` - 프로필 이미지 삭제
+- `POST	/api/posts/{postId}/files`	파일 등록
+- `GET	/api/posts/{postId}/files`	게시글 파일 목록 조회
+- `DELETE	/api/posts/{postId}/files/{fileId}`	파일 삭제 (회원)
+- `GET	/api/admin/files`	관리자 모든 파일 조회
+- `GET	/api/admin/files/{fileId}`	관리자 단일 파일 상세 조회
+- `DELETE	/api/admin/files/{fileId}`	파일 삭제 (관리자)
+- `POST	/api/members/{memberId}profile-image`	사용자 프로필 이미지 등록 및 수정
+- `GET	/api/members/{memberId}profile-image`	사용자 프로필 이미지만 조회
+- `DELETE	/api/members/{memberId}profile-image`	사용자 프로필 이미지 삭제
 
 ### 3. 백엔드 배포
 
@@ -131,54 +115,34 @@ public class FileService {
 ## 프로젝트 아키텍처
 
 ### 시스템 구성도
+![아키텍쳐 이미지](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-SecondProject/%EC%8B%9C%EC%8A%A4%ED%85%9C%EA%B5%AC%EC%84%B1%EB%8F%84(%EB%B0%B0%ED%8F%AC).drawio.png)
 
-```
-┌─────────────────┐    HTTPS     ┌─────────────────┐
-│   Frontend      │ ◄──────────► │   Nginx         │
-│   (Vercel)      │              │ (Reverse Proxy) │
-└─────────────────┘              └─────────────────┘
-                                          │
-                                          ▼
-                  ┌───────────────────────────────────┐
-                  │      Spring Boot (EC2)            │
-                  │  ┌──────────────────────────┐     │
-                  │  │  API Gateway             │     │
-                  │  └──────────────────────────┘     │
-                  │            │                      │
-                  │  ┌─────────┴─────────────────┐   │
-                  │  │  Member  │ Post │ File    │   │
-                  │  │  Service │ Svc  │ Service │   │
-                  │  └─────────┬─────────────────┘   │
-                  └────────────┼──────────────────────┘
-                               │
-                   ┌───────────┴───────────┐
-                   │                       │
-              ┌────▼────┐            ┌────▼────┐
-              │   RDS   │            │   S3    │
-              │ (MySQL) │            │ (Files) │
-              └─────────┘            └─────────┘
-                   │
-              ┌────▼────┐
-              │  Redis  │
-              │(Chat)   │
-              └─────────┘
-```
+### ERD
+![ERD](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-SecondProject/2%EC%B0%A8%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20ERD.png)
 
 ### 도메인 구조
 
 ```
-backend/src/main/java/com/tensionup/
+backend/src/main/java/com/back/
+├── config/             # 애플리케이션 공통 설정
 ├── domain/
+│   ├── admin/          # 관리자 기능
+│   ├── auth/           # 인증 및 권한 관리
+│   ├── chat/           # 채팅 기능
+│   ├── files/          # 파일 관리
 │   ├── member/         # 회원 관리
-│   ├── post/           # 게시판
-│   ├── file/           # 첨부파일 (내가 담당)
-│   ├── trade/          # 거래
-│   └── chat/           # 채팅
-├── global/             # 공통 설정
-│   ├── config/         # AWS S3, Security 등
-│   ├── exception/      # 예외 처리
-│   └── util/           # 유틸리티
-└── TensionUpApplication.java
+│   ├── post/           # 게시글 관리
+│   └── trade/          # 거래 관리
+├── global/
+│   ├── exception/      # 예외 정의
+│   ├── globalExceptionHandler/ # 전역 예외 처리
+│   ├── init/           # 초기화 관련
+│   ├── jpa/            # JPA 관련 설정/유틸
+│   ├── rq/             # 요청 관련
+│   ├── rsData/         # 응답 데이터 형식
+│   ├── security/       # 보안 관련 설정
+│   └── springDoc/      # SpringDoc (Swagger) 설정
+└── BackApplication.java
 ```
 ___
 
@@ -288,7 +252,7 @@ ___
 
 **일일 스크럼 진행**
 - 매일 아침 15분 회의
-- 진행 상황 공유 및 블로커 해결
+- 진행 상황 공유 및 문제 해결
 - 작업 우선순위 조정
 
 **의사결정 과정**
@@ -334,7 +298,7 @@ ___
 - 보안 그룹 및 IAM 설정
 - 비용 최적화 고려
 
-**CI/CD 파이프라인**
+~~**CI/CD 파이프라인**~~
 - 자동 배포의 필요성 체감
 - 무중단 배포 전략 학습
 - 모니터링의 중요성
@@ -420,7 +384,7 @@ ___
 - **팀장 경험**: 첫 팀장 역할 수행 및 프로젝트 완수
 - **배포 경험**: 로컬 개발부터 실제 배포까지 전 과정 경험
 - **협업 역량**: 체계적인 협업 프로세스 정립 및 실행
-- **기술 성장**: AWS, 파일 시스템, 배포 자동화 실전 경험
+- **기술 성장**: AWS, 파일 시스템, 배포 실전 경험
 
 ## 마치며
 
