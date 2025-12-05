@@ -11,14 +11,14 @@ description: "디지털 소외계층을 위한 AI 멘토링 교육 플랫폼 - �
 프로그래머스 백엔드 데브코스 6기 8회차 6팀 **'MOCI'**의 최종 프로젝트로, **시니어와 디지털 초보자를 위한 AI 기반 3D 맞춤형 교육 플랫폼**을 개발했습니다.
 
 - **프로젝트 기간**: 2025_09_15 - 2025_10_15(약 1개월)
-- **팀 구성**: 5명 (백엔드 중심)
+- **팀 구성**: 8명 (프론트엔드 3명, 백엔드 5명)
 - **나의 역할**: 백엔드 개발 - 공개 자료실 및 자료 요청 시스템, 인프라 관리 및 모니터링
-- **서비스 이름**: MOCI 3D (My Own Class Initiative 3D)
-- **배포 상태**: 실제 서비스 배포 완료 (https://www.mydidimdol.com)
+- **서비스 이름**: 디딤돌
+- **배포 상태**: ~~배포 완료 (https://www.mydidimdol.com)~~(서버 종료)
 
 ### 프로젝트 배경
 
-디지털 소외계층, 특히 시니어층의 디지털 리터러시 향상을 목표로 멘토-멘티 매칭, AI 챗봇 학습 지원, 교육 자료 공유 등을 제공하는 종합 교육 플랫폼입니다. 카카오톡, 배달의민족, 유튜브 등 일상에서 필요한 디지털 서비스 사용법을 쉽게 배울 수 있도록 돕습니다.
+디지털 소외계층, 특히 시니어층의 디지털 격차 해결을 목표로 멘토-멘티 실시간 채팅 매칭, AI 챗봇 활용 학습 지원, 교육 자료 공유 등을 제공하는 종합 교육 플랫폼입니다. 카카오톡, 배달의민족, 유튜브 등 일상에서 필요한 디지털 서비스 사용법을 쉽게 배울 수 있도록 돕습니다.
 
 ## 기술 스택
 
@@ -45,41 +45,33 @@ description: "디지털 소외계층을 위한 AI 멘토링 교육 플랫폼 - �
 - React
 - TypeScript
 
-## 팀 구성 및 역할
+## 백엔드 팀 구성 및 역할
 
-| 팀원 | 역할 | 담당 기능 |
-|------|------|-----------|
-| 순태열 | Product Owner | AWS S3 파일 업로드, WebRTC 화상 통화, P2P 시그널링 서버 |
-| 박영진 | Backend Lead | JWT 기반 로그인/로그아웃, 소셜 로그인 (카카오/구글/네이버), 자동 토큰 갱신, 사용자 정보 관리 |
-| 김성철 | AI Engineer | AI 질문/답변 처리, 스트리밍 응답 구현, AWS EC2/RDS 배포, CI/CD 파이프라인 구축 |
+| 팀원 | 역할                   | 담당 기능 |
+|----|----------------------|-----------|
+| 순태열 | PO(Product Owner)    | AWS S3 파일 업로드, WebRTC 화상 통화, P2P 시그널링 서버 |
+| 박영진 | 백엔드 팀장(Backend Lead) | JWT 기반 로그인/로그아웃, 소셜 로그인 (카카오/구글/네이버), 자동 토큰 갱신, 사용자 정보 관리 |
+| 김성철 | AI Engineer          | AI 질문/답변 처리, 스트리밍 응답 구현, AWS EC2/RDS 배포, CI/CD 파이프라인 구축 |
 | **박태규 (나)** | **Backend Engineer** | **공개 자료실 CRUD, 자료 요청 승인 시스템, 인프라 관리 및 모니터링** |
-| 정주신 | Real-time Engineer | WebSocket 실시간 채팅, 멘토-멘티 매칭, 채팅 히스토리 관리 |
+| 정주신 | Real-time Engineer   | WebSocket 실시간 채팅, 멘토-멘티 매칭, 채팅 히스토리 관리 |
 
 ## 담당 기능
 
+## API 구현
 ### 1. 공개 자료실 시스템
 
 교육 자료를 체계적으로 관리하고 공유할 수 있는 자료실 시스템을 개발했습니다.
 
-#### 주요 기능
+#### 담당 주요 기능
 
-**자료 관리 (CRUD)**
-```text
-// 자료 목록 조회 (카테고리별 필터링)
-GET /api/v1/archives
+**공개 자료실 API**
 
-// 자료 상세 조회
-GET /api/v1/archives/{id}
-
-// 자료 등록 (ADMIN)
-POST /api/v1/archives
-
-// 자료 수정 (ADMIN)
-PUT /api/v1/archives/{id}
-
-// 자료 삭제 (ADMIN)
-DELETE /api/v1/archives/{id}
-```
+| 기능                  | HTTP 메서드 | 경로                                       |
+| :-------------------- | :---------- | :----------------------------------------- |
+| 교육자료실 조회(public) | GET         | `/api/v1/archive/public`                   |
+| 관리자 - 교육자료 등록 | POST        | `/api/v1/admin/archive/public`             |
+| 관리자 - 교육자료실 수정 | PUT         | `/api/v1/admin/archive/public/{archiveId}` |
+| 관리자 - 교육자료실 삭제 | DELETE      | `/api/v1/admin/archive/public/{archiveId}` |
 
 **카테고리 분류**
 - 카카오톡
@@ -108,21 +100,18 @@ DELETE /api/v1/archives/{id}
 승인 시 자료실에 관리자의 교육자료 등록
 ```
 
-#### API 구현
+**자료 요청 API**
 
-```text
-// 자료 요청 등록
-POST /api/v1/archive-requests
-
-// 요청 목록 조회
-GET /api/v1/archive-requests
-
-// 요청 상세 조회
-GET /api/v1/archive-requests/{requestId}
-
-// 승인/거부 (ADMIN)
-PATCH /api/v1/archive-requests/{requestId}
-```
+| 기능                      | HTTP 메서드 | 경로                                              |
+| :------------------------ | :---------- | :------------------------------------------------ |
+| 자료요청 등록(멘토)       | POST        | `/api/v1/archive-requests`                        |
+| 자료요청 조회(관리자, 멘토) | GET         | `/api/v1/archive-requests`                        |
+| 자료요청 상세조회(관리자, 멘토) | GET         | `/api/v1/archive-requests/{requestId}`            |
+| 자료요청 수정(관리자, 멘토) | PUT         | `/api/v1/archive-requests/{requestId}`            |
+| 자료요청 삭제(관리자, 멘토) | DELETE      | `/api/v1/archive-requests/{requestId}`            |
+| 자료요청 상태 변경(관리자) | PATCH       | `/api/v1/archive-requests/{requestId}/status`     |
+| 사용자별 자료요청 조회(관리자, 멘토) | GET         | `/api/v1/users/{userId}/archive-requests`         |
+| 대기중 요청 개수 조회(관리자) | GET         | `/api/v1/archive-requests/pending/count`          |
 
 **상태 관리**
 - `PENDING`: 검토 대기 중
@@ -134,12 +123,12 @@ PATCH /api/v1/archive-requests/{requestId}
 1. 사용자가 필요한 자료 요청 작성
 2. 관리자 페이지에서 요청 목록 확인
 3. 관리자가 요청 내용 검토
-4. 승인 시: 공개 자료실에 자동으로 등록
-5. 거부 시: 요청 상태만 업데이트
+4. 승인 시: 공개 자료실에 관리자가 등록
+5. 거부 시: 요청 상태 업데이트 및 멘토 수정가능
 
 ### 3. 인프라 관리 및 모니터링
 
-실제 서비스 운영을 위한 인프라 관리와 모니터링을 담당했습니다.
+실제 서비스 운영을 위한 인프라 관리를 담당했습니다.
 
 **인프라 구성**
 - AWS EC2를 통한 Spring Boot 애플리케이션 호스팅
@@ -155,12 +144,10 @@ PATCH /api/v1/archive-requests/{requestId}
 **모니터링**
 - 서버 상태 모니터링
 - 로그 분석 및 에러 트래킹
-- 데이터베이스 성능 모니터링
 
 ## 프로젝트 아키텍처
 
 ### 시스템 구성도
-
 
 ![아키텍처 이미지](https://pub-8645696b761c495498795a6b2b48c318.r2.dev/devcourse-FourthProject/4%EC%B0%A8%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EC%95%84%ED%82%A4%ED%85%8D%EC%B3%90.drawio.png)
 
@@ -169,24 +156,18 @@ PATCH /api/v1/archive-requests/{requestId}
 
 ```
 src/main/java/com/moci_3d_backend/
-├── domain/
-│   ├── user/              # 사용자 관리
-│   ├── chat/
-│   │   ├── mentor/        # 멘토링 채팅
-│   │   └── ai/            # AI 챗봇
-│   ├── archive/           # 교육 자료실 (내가 담당)
-│   │   ├── public_archive/    # 공개 자료실 CRUD
-│   │   └── archive_request/   # 자료 요청 시스템
-│   ├── fileUpload/        # 파일 업로드
-│   └── webRTC/            # 화상 통화
-├── global/
-│   ├── security/          # 보안 설정
-│   ├── webSocket/         # WebSocket 설정
-│   ├── config/
-│   ├── exception/
-│   └── util/
-└── external/
-    └── ai/                # AI API 연동
+├── domain/ # 핵심 비즈니스 로직 패키지
+│   ├── user/              # 사용자 관리 (회원가입, 인증, 정보 관리)
+│   ├── archive/           # 자료실 관리
+│   │   ├── public_archive/    # 공개 자료실 게시물 CRUD
+│   │   └── archive_request/   # 자료요청실 관리 CRUD
+│   ├── chat/              # 채팅 기능
+│   │   ├── ai/            # AI 상담 챗봇 (Gemini API 연동)
+│   │   └── mentor/        # 멘토-멘티 실시간 채팅
+│   ├── fileUpload/        # 파일 업로드 (AWS S3 연동)
+│   └── webRTC/            # 화상 통화 (WebRTC 신호 처리)
+├── external...
+├── global...
 ```
 
 ## 전체 서비스 주요 기능
@@ -195,12 +176,11 @@ src/main/java/com/moci_3d_backend/
 - **일반 로그인**: 전화번호 기반 JWT 인증
 - **소셜 로그인**: 카카오, 구글, 네이버 OAuth2 연동
 - **자동 토큰 갱신**: Refresh Token을 활용한 무중단 인증
-- **디지털 레벨 시스템**: 사용자의 디지털 리터러시 수준 측정 (0~5단계)
+- **디지털 레벨 시스템**: 사용자의 디지털 사용능력 수준 측정 (0~5단계)
 
 ### 2. AI 챗봇
 - **AI 기반 Q&A**: 디지털 관련 질문에 Gemini AI가 답변
 - **스트리밍 응답**: 실시간 스트리밍 방식의 자연스러운 대화
-- **Rate Limiting**: Bucket4j를 활용한 API 호출 제한 (분당 10회)
 - **대화 저장**: 사용자별 AI 채팅 기록 관리
 
 ### 3. 멘토링 채팅
@@ -208,15 +188,15 @@ src/main/java/com/moci_3d_backend/
 - **멘토-멘티 매칭**: 채팅방 생성 및 관리
 - **채팅 히스토리**: 대화 내역 저장 및 조회
 
-### 4. 화상 통화
-- **실시간 화상 멘토링**: WebRTC 기반 P2P 연결
-- **화면 공유**: 멘토가 화면을 공유하며 설명
-- **저지연 통신**: 직접 연결로 빠른 응답
+~~### 4. 화상 통화~~
+~~- **실시간 화상 멘토링**: WebRTC 기반 P2P 연결~~
+~~- **화면 공유**: 멘토가 화면을 공유하며 설명~~
+~~- **저지연 통신**: 직접 연결로 빠른 응답~~
 
-### 5. 파일 관리
+### 4. 파일 관리
 - **AWS S3 연동**: 클라우드 기반 파일 저장
 - **다중 파일 업로드**: 여러 파일 동시 업로드 지원
-- **파일 메타데이터 관리**: 파일명, URL, 크기 등 관리
+- **파일 관리**: 파일명, URL, 크기 등 관리
 
 ## 기술적 구현 상세
 
@@ -224,16 +204,78 @@ src/main/java/com/moci_3d_backend/
 
 복잡한 검색 조건과 동적 쿼리 작성을 위해 QueryDSL을 활용했습니다.
 
+<details>
+<summary>카테고리별 자료 검색 예시 (Java)</summary>
+
 ```java
-// 카테고리별 자료 검색 예시
-public List<PublicArchive> findByCategory(String category) {
-    return queryFactory
-        .selectFrom(publicArchive)
-        .where(publicArchive.category.eq(category))
-        .orderBy(publicArchive.createdAt.desc())
-        .fetch();
+// 다중 키워드 + 카테고리 검색
+@Override
+public Page<PublicArchive> searchByKeywordsAndCategory(
+        String[] keywords,
+        ArchiveCategory category,
+        Pageable pageable
+) {
+    QPublicArchive archive = QPublicArchive.publicArchive;
+
+    // 카테고리 필터 추가
+    BooleanBuilder builder = new BooleanBuilder();
+    builder.and(archive.category.eq(category)); // 카테고리 조건
+
+    // 모든 키워드가 포함되어야 함 (AND 조건)
+    for (String keyword : keywords) {
+        String lowerKeyword = keyword.toLowerCase();
+        builder.and(
+                archive.title.lower().contains(lowerKeyword)
+                        .or(archive.description.lower().contains(lowerKeyword))
+        );
+    }
+
+    // 쿼리 실행
+    JPAQuery<PublicArchive> query = queryFactory
+            .selectFrom(archive)
+            .where(builder);
+
+    // 정렬 적용
+    applySorting(query, archive, pageable);
+
+    // 페이징 적용
+    List<PublicArchive> results = query
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+    // 전체 개수 조회
+    long total = queryFactory
+            .selectFrom(archive)
+            .where(builder)
+            .fetchCount();
+
+    return new PageImpl<>(results, pageable, total);
+}
+
+// 정렬 적용 헬퍼 메서드
+private void applySorting(JPAQuery<PublicArchive> query, QPublicArchive archive, Pageable pageable) {
+    if (pageable.getSort().isSorted()) {
+        pageable.getSort().forEach(order -> {
+            String property = order.getProperty();
+            if ("createdAt".equals(property)) {
+                query.orderBy(order.isAscending() ?
+                        archive.createdAt.asc() : archive.createdAt.desc());
+            } else if ("updatedAt".equals(property)) {
+                query.orderBy(order.isAscending() ?
+                        archive.updatedAt.asc() : archive.updatedAt.desc());
+            } else if ("title".equals(property)) {
+                query.orderBy(order.isAscending() ?
+                        archive.title.asc() : archive.title.desc());
+            }
+        });
+    } else {
+        query.orderBy(archive.createdAt.desc());
+    }
 }
 ```
+
+</details>
 
 **장점**
 - 타입 안전한 쿼리 작성
@@ -250,14 +292,20 @@ ADMIN > MENTOR > USER
 
 - ADMIN: 모든 권한 (자료 등록, 요청 승인/거부)
 - MENTOR: USER 권한 + 멘토링 제공
-- USER: 기본 권한 (자료 조회, 요청 등록)
+- USER: 기본 권한 (공개 자료 조회, 상담 요청)
 ```
 
 **구현 예시**
 ```java
-@PreAuthorize("hasRole('ADMIN')")
-public void approveRequest(Long requestId) {
-    // 관리자만 접근 가능
+@GetMapping("/archive-requests/{requestId}")
+@PreAuthorize("hasRole('MENTOR')")
+@Operation(summary = "[관리자/멘토] 자료 요청 상세 조회", description = "관리자와 멘토가 자료 요청 상세 정보를 조회할 수 있습니다.")
+public RsData<ArchiveRequestResponseDto> getArchiveRequest(
+        @PathVariable @Parameter(description = "조회할 요청글 ID") Long requestId
+) {
+    User actor = rq.getActor();
+    ArchiveRequestResponseDto response = archiveRequestService.getArchiveRequest(requestId, actor);
+    return RsData.of(200, "자료 요청 상세 정보를 성공적으로 조회했습니다.", response);
 }
 ```
 
@@ -289,42 +337,13 @@ public void approveRequest(Long requestId) {
 
 **코드 리뷰 문화**
 - 모든 코드는 최소 1명의 리뷰 필수
+- copilot 피드백 활용
 - 건설적인 피드백 제공
 - 코드 품질 향상에 기여
 
 ## 기술적 도전과 해결
 
-### 1. 자료 요청 승인 시 자동 등록
-
-**문제**
-- 관리자가 자료 요청을 승인할 때, 공개 자료실에 수동으로 다시 등록해야 하는 번거로움
-
-**해결**
-- 승인 시 자동으로 공개 자료실에 등록되도록 로직 구현
-- 트랜잭션 관리로 데이터 일관성 보장
-
-```java
-@Transactional
-public void approveRequest(Long requestId) {
-    ArchiveRequest request = findRequest(requestId);
-    request.approve();
-    
-    // 공개 자료실에 자동 등록
-    PublicArchive archive = PublicArchive.from(request);
-    publicArchiveRepository.save(archive);
-}
-```
-
-### 2. 파일 업로드와 자료 메타데이터 동기화
-
-**문제**
-- 파일 업로드와 자료 정보 저장이 별도로 이루어져 동기화 이슈 발생 가능
-
-**해결**
-- 트랜잭션 범위 내에서 파일 업로드와 메타데이터 저장을 함께 처리
-- 실패 시 롤백으로 데이터 정합성 유지
-
-### 3. 운영 환경 설정 관리
+### 1. 운영 환경 설정 관리
 
 **문제**
 - 민감한 정보(API 키, DB 비밀번호)를 안전하게 관리 필요
@@ -352,7 +371,6 @@ public void approveRequest(Long requestId) {
 
 **워크플로우 설계**
 - 사용자 요청 → 관리자 검토 → 승인/거부
-- 자동화를 통한 효율성 향상
 - 권한 기반 접근 제어
 
 **카테고리 분류**
@@ -368,8 +386,8 @@ public void approveRequest(Long requestId) {
 
 **안정적인 배포**
 - 프로파일 기반 환경 분리
-- 무중단 배포 고려
-- 에러 대응 및 롤백 전략
+- CI/CD 파이프라인 구축
+- 에러 대응 전략
 
 ### 4. 팀 협업의 중요성
 
@@ -390,11 +408,7 @@ public void approveRequest(Long requestId) {
    - 일정 압박으로 단위 테스트 작성 미흡
    - 통합 테스트 부재
 
-2. **검색 기능 미구현**
-   - 자료 제목/내용 기반 검색 미구현
-   - 태그 시스템 부재
-
-3. **자료 버전 관리 부족**
+2. **자료 버전 관리 부족**
    - 자료 수정 이력 관리 미흡
    - 이전 버전 조회 불가
 
@@ -439,7 +453,7 @@ public void approveRequest(Long requestId) {
 
 특히 **디지털 소외계층을 위한 서비스**라는 점에서 개발자로서 사회에 기여할 수 있다는 보람을 느꼈습니다. 단순히 기술을 구현하는 것을 넘어, 실제 사용자의 니즈를 고민하고 그들의 삶을 개선할 수 있는 서비스를 만드는 경험은 개발자로서 큰 자산이 될 것입니다.
 
-공개 자료실과 자료 요청 시스템을 담당하면서, 사용자와 관리자 모두를 만족시킬 수 있는 **워크플로우 설계의 중요성**을 배웠습니다. 또한 실제 서비스를 배포하고 운영하면서 **인프라 관리와 모니터링**의 중요성을 체감할 수 있었습니다.
+공개 자료실과 자료 요청 시스템을 담당하면서, 사용자와 관리자 모두를 만족시킬 수 있는 **워크플로우 설계의 중요성**을 배웠습니다. 또한 실제 서비스를 배포하며 운영의 과정을 체험할 수 있었습니다.
 
 1차 프로젝트에서 시작해 4차 최종 프로젝트까지, 점진적으로 성장하며 더 복잡하고 의미 있는 프로젝트를 완성할 수 있었습니다. 이 과정에서 얻은 경험과 지식은 앞으로의 개발 여정에서 큰 밑거름이 될 것입니다.
 
