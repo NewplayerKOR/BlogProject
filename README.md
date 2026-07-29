@@ -185,3 +185,7 @@ interface PostMetadata {
 - [React 공식 문서](https://react.dev)
 - [TypeScript 공식 문서](https://www.typescriptlang.org/docs)
 - [Tailwind CSS 공식 문서](https://tailwindcss.com/docs)
+
+## 📒 콘텐츠 원천 자료
+
+개인 경험과 개발 작업 문서가 포함된 `docs/` 디렉터리는 로컬 전용으로 관리하며 공개 저장소에는 포함하지 않습니다.

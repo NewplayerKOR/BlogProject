@@ -1,75 +1,60 @@
-import PostCard from '@/components/post/PostCard';
-import { getAllPosts } from '@/lib/posts';
+import type { Metadata } from "next";
 
-/**
- * 전체 포스트 목록 페이지
- */
-export const metadata = {
-  title: '전체 포스트 | NewplayerKOR 블로그',
-  description: '모든 카테고리의 포스트를 확인하세요.',
+import { EmptyPostState } from "@/components/post/empty-post-state";
+import { PostList } from "@/components/post/post-list";
+import { PageIntro } from "@/components/site/page-intro";
+import { Separator } from "@/components/ui/separator";
+import { getAllPosts } from "@/lib/posts";
+
+export const metadata: Metadata = {
+  title: "전체 글",
+  description: "프로젝트, 트러블슈팅과 학습 기록 전체를 확인합니다.",
 };
 
 export default function AllPostsPage() {
   const posts = getAllPosts();
-
-  // 카테고리별로 그룹화
-  const postsByCategory = posts.reduce((acc, post) => {
-    const category = post.category;
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(post);
-    return acc;
-  }, {} as Record<string, typeof posts>);
-
-  const categories = Object.keys(postsByCategory);
+  const groupedPosts = posts.reduce((groups, post) => {
+    const group = groups.get(post.category) ?? [];
+    group.push(post);
+    groups.set(post.category, group);
+    return groups;
+  }, new Map<string, typeof posts>());
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-12">
-      {/* 헤더 */}
-      <header className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          📖 전체 포스트
-        </h1>
-        <p className="text-gray-600">
-          모든 카테고리의 포스트를 한눈에 확인하세요.
-        </p>
-        <div className="mt-4 flex gap-2">
-          <span className="text-sm text-gray-500">
-            총 {posts.length}개의 포스트
-          </span>
-        </div>
-      </header>
+    <div className="page-shell pb-24">
+      <PageIntro
+        eyebrow="Writing archive"
+        title="개발 과정을 기록합니다."
+        description="프로젝트에서 내린 선택과 배운 점을 공개하고, 다음 개발에서 다시 참고할 수 있는 기록으로 남깁니다."
+        count={posts.length}
+      />
 
-      {/* 카테고리별 포스트 */}
-      {posts.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">
-            아직 작성된 포스트가 없습니다.
-          </p>
+      {posts.length > 0 ? (
+        <div className="flex flex-col gap-16">
+          {Array.from(groupedPosts.entries()).map(
+            ([category, categoryPosts], index) => (
+              <section key={category}>
+                {index > 0 ? <Separator className="mb-14" /> : null}
+                <div className="grid gap-8 lg:grid-cols-[0.28fr_0.72fr] lg:gap-14">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-[-0.035em]">
+                      {category}
+                    </h2>
+                    <p className="mt-2 font-mono text-xs text-muted-foreground">
+                      {String(categoryPosts.length).padStart(2, "0")} notes
+                    </p>
+                  </div>
+                  <PostList posts={categoryPosts} />
+                </div>
+              </section>
+            ),
+          )}
         </div>
       ) : (
-        <div className="space-y-16">
-          {categories.map((category) => (
-            <section key={category}>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {category === '학습내용' && '📚 '}
-                {category === '트러블슈팅' && '🔧 '}
-                {category === '프로젝트' && '🚀 '}
-                {category === '자기소개' && '👋 '}
-                {category}
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({postsByCategory[category].length})
-                </span>
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {postsByCategory[category].map((post) => (
-                  <PostCard key={post.slug} post={post} />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <EmptyPostState
+          title="아직 공개된 글이 없습니다."
+          description="검증을 마친 프로젝트와 문제 해결 기록부터 차례로 공개할 예정입니다."
+        />
       )}
     </div>
   );

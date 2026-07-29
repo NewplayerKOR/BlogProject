@@ -1,22 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import "pretendard/dist/web/variable/pretendardvariable.css";
 import "./globals.css";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { SITE_CONFIG, getSiteUrl } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "NewplayerKOR 기술 블로그",
-  description: "학습 내용과 개발 경험을 공유하는 기술 블로그입니다.",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: `${SITE_CONFIG.name} | 백엔드 개발자`,
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  description: SITE_CONFIG.description,
+  applicationName: `${SITE_CONFIG.name} 포트폴리오`,
+  authors: [{ name: SITE_CONFIG.name, url: SITE_CONFIG.github }],
+  creator: SITE_CONFIG.name,
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    title: `${SITE_CONFIG.name} | 백엔드 개발자`,
+    description: SITE_CONFIG.description,
+    siteName: `${SITE_CONFIG.name} 포트폴리오`,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_CONFIG.name} | 백엔드 개발자`,
+    description: SITE_CONFIG.description,
+  },
 };
 
 export default function RootLayout({
@@ -25,25 +38,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <div className="flex min-h-screen bg-gray-50">
-          {/* 좌측 사이드바 */}
-          <Sidebar />
-          
-          {/* 메인 콘텐츠 영역 */}
-          <main className="flex-1 flex flex-col">
-            {/* 상단 헤더 */}
-            <Header />
-            
-            {/* 페이지 콘텐츠 */}
-            <div className="flex-1">
+    <html lang="ko" className={GeistMono.variable}>
+      <body>
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 -translate-y-24 rounded-md bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform focus:translate-y-0"
+        >
+          본문으로 건너뛰기
+        </a>
+        <TooltipProvider>
+          <div className="flex min-h-svh flex-col">
+            <SiteHeader />
+            <main id="main-content" className="flex-1">
               {children}
-            </div>
-          </main>
-        </div>
+            </main>
+            <SiteFooter />
+          </div>
+        </TooltipProvider>
       </body>
     </html>
   );

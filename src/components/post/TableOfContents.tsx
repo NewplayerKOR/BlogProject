@@ -1,6 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+
+import { cn } from "@/lib/utils";
 
 interface Heading {
   id: string;
@@ -8,96 +10,102 @@ interface Heading {
   level: number;
 }
 
-/**
- * 포스트의 목차(Table of Contents) 컴포넌트
- * 클라이언트 컴포넌트로, 스크롤 위치에 따라 현재 섹션 하이라이트
- */
-export default function TableOfContents() {
+interface TableOfContentsProps {
+  variant: "mobile" | "desktop";
+}
+
+export default function TableOfContents({ variant }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<Heading[]>([]);
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
-    // 페이지의 모든 h2, h3 헤딩 가져오기
     const elements = Array.from(
-      document.querySelectorAll('article h2, article h3')
+      document.querySelectorAll<HTMLElement>(
+        "[data-article-content] h2, [data-article-content] h3",
+      ),
     );
 
-    const headingData: Heading[] = elements.map((element, index) => {
-      const level = parseInt(element.tagName.substring(1));
-      const text = element.textContent || '';
-      
-      // ID가 없으면 생성
-      if (!element.id) {
-        const id = `heading-${index}`;
-        element.id = id;
-      }
-
-      return {
+    const nextHeadings = elements
+      .filter((element) => element.id)
+      .map((element) => ({
         id: element.id,
-        text,
-        level,
-      };
+        text: element.textContent?.trim() ?? "",
+        level: Number(element.tagName.slice(1)),
+      }));
+
+    const initialStateFrame = window.requestAnimationFrame(() => {
+      setHeadings(nextHeadings);
+      setActiveId(nextHeadings[0]?.id ?? "");
     });
 
-    setHeadings(headingData);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleHeading = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
 
-    // 스크롤 감지
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
-
-      for (let i = elements.length - 1; i >= 0; i--) {
-        const element = elements[i] as HTMLElement;
-        if (element.offsetTop <= scrollPosition) {
-          setActiveId(element.id);
-          break;
+        if (visibleHeading?.target.id) {
+          setActiveId(visibleHeading.target.id);
         }
-      }
+      },
+      {
+        rootMargin: "-18% 0px -70% 0px",
+        threshold: [0, 1],
+      },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => {
+      window.cancelAnimationFrame(initialStateFrame);
+      observer.disconnect();
     };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // 초기 실행
-
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   if (headings.length === 0) {
     return null;
   }
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const element = document.getElementById(id);
-    if (element) {
-      const top = element.offsetTop - 80;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  };
+  const list = (
+    <ol className="flex flex-col gap-1.5">
+      {headings.map((heading) => (
+        <li key={heading.id}>
+          <a
+            href={`#${heading.id}`}
+            aria-current={activeId === heading.id ? "location" : undefined}
+            className={cn(
+              "block border-l-2 border-border py-1.5 pr-2 text-sm leading-6 text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground",
+              heading.level === 3 ? "pl-6" : "pl-3",
+              activeId === heading.id &&
+                "border-primary font-semibold text-primary",
+            )}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ol>
+  );
+
+  if (variant === "mobile") {
+    return (
+      <details className="mb-10 border-y border-border py-4 xl:hidden">
+        <summary className="cursor-pointer font-semibold">이 글의 목차</summary>
+        <nav aria-label="글 목차" className="mt-4">
+          {list}
+        </nav>
+      </details>
+    );
+  }
 
   return (
-    <nav className="sticky top-8 hidden xl:block">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">
-        목차
-      </h3>
-      <ul className="space-y-2 text-sm">
-        {headings.map((heading) => (
-          <li
-            key={heading.id}
-            style={{ paddingLeft: `${(heading.level - 2) * 1}rem` }}
-          >
-            <a
-              href={`#${heading.id}`}
-              onClick={(e) => handleClick(e, heading.id)}
-              className={`block py-1 transition-colors border-l-2 pl-3 ${
-                activeId === heading.id
-                  ? 'border-blue-600 text-blue-600 font-medium'
-                  : 'border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-400'
-              }`}
-            >
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <nav
+      aria-label="글 목차"
+      className="sticky top-28 hidden max-h-[calc(100svh-9rem)] overflow-y-auto xl:block"
+    >
+      <p className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.13em] text-foreground">
+        On this page
+      </p>
+      {list}
     </nav>
   );
 }

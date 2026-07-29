@@ -1,89 +1,65 @@
-import Link from 'next/link';
-import type { PostSummary } from '@/types';
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import Link from "next/link";
+
+import { Separator } from "@/components/ui/separator";
+import type { PostSummary } from "@/types";
 
 interface PostNavigationProps {
   prevPost?: PostSummary | null;
   nextPost?: PostSummary | null;
 }
 
-/**
- * 이전 글 / 다음 글 네비게이션 컴포넌트
- */
-export default function PostNavigation({ prevPost, nextPost }: PostNavigationProps) {
+export default function PostNavigation({
+  prevPost,
+  nextPost,
+}: PostNavigationProps) {
   if (!prevPost && !nextPost) {
     return null;
   }
 
   return (
-    <nav className="mt-16 pt-8 border-t border-gray-200">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 이전 글 */}
+    <nav aria-label="이전 글과 다음 글" className="mt-16">
+      <Separator />
+      <div className="grid gap-8 py-8 sm:grid-cols-2">
         <div>
           {prevPost ? (
             <Link
               href={`/posts/${prevPost.slug}`}
-              className="group block p-6 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+              className="group flex h-full flex-col gap-3 rounded-md py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="text-sm text-gray-500 mb-2 flex items-center">
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <ArrowLeftIcon className="size-4" />
                 이전 글
-              </div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+              </span>
+              <span className="text-lg font-bold leading-7 tracking-[-0.025em] transition-colors group-hover:text-primary">
                 {prevPost.title}
-              </h3>
+              </span>
             </Link>
           ) : (
-            <div className="p-6 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
-              <div className="text-sm text-gray-400 mb-2">이전 글</div>
-              <p className="text-gray-400">이전 글이 없습니다</p>
-            </div>
+            <p className="py-2 text-sm text-muted-foreground">
+              이전 글이 없습니다.
+            </p>
           )}
         </div>
 
-        {/* 다음 글 */}
-        <div>
+        <div className="sm:text-right">
           {nextPost ? (
             <Link
               href={`/posts/${nextPost.slug}`}
-              className="group block p-6 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all text-right"
+              className="group flex h-full flex-col gap-3 rounded-md py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="text-sm text-gray-500 mb-2 flex items-center justify-end">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground sm:justify-end">
                 다음 글
-                <svg
-                  className="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                <ArrowRightIcon className="size-4" />
+              </span>
+              <span className="text-lg font-bold leading-7 tracking-[-0.025em] transition-colors group-hover:text-primary">
                 {nextPost.title}
-              </h3>
+              </span>
             </Link>
           ) : (
-            <div className="p-6 bg-gray-50 border border-gray-200 rounded-lg opacity-50 text-right">
-              <div className="text-sm text-gray-400 mb-2">다음 글</div>
-              <p className="text-gray-400">다음 글이 없습니다</p>
-            </div>
+            <p className="py-2 text-sm text-muted-foreground">
+              다음 글이 없습니다.
+            </p>
           )}
         </div>
       </div>

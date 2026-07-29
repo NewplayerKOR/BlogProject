@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-/**
- * 전역 에러 핸들러
- */
+import { Button } from "@/components/ui/button";
+
 export default function Error({
   error,
   reset,
@@ -13,26 +12,22 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Application error:', error);
+    console.error("Application error:", error);
   }, [error]);
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-20 text-center">
-      <h1 className="text-6xl font-bold text-red-600 mb-4">오류 발생</h1>
-      <h2 className="text-2xl font-semibold text-gray-700 mb-6">
-        페이지를 불러오는 중 오류가 발생했습니다
-      </h2>
-      <div className="mb-8 p-4 bg-red-50 rounded-lg">
-        <p className="text-red-700 font-mono text-sm">
-          {error.message}
-        </p>
-      </div>
-      <button
-        onClick={reset}
-        className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-      >
+    <div className="page-shell py-24 text-center">
+      <p className="section-kicker">Unexpected error</p>
+      <h1 className="mt-4 text-4xl font-extrabold tracking-[-0.05em] sm:text-5xl">
+        페이지를 불러오지 못했습니다.
+      </h1>
+      <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
+        잠시 후 다시 시도해 주세요. 같은 문제가 반복되면 GitHub를 통해 알려
+        주세요.
+      </p>
+      <Button onClick={reset} size="lg" className="mt-8">
         다시 시도
-      </button>
+      </Button>
     </div>
   );
 }

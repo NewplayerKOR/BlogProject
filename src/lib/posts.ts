@@ -2,8 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { remark } from 'remark';
-import html from 'remark-html';
 import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
+import rehypeSlug from 'rehype-slug';
+import rehypeStringify from 'rehype-stringify';
 import type { Post, PostSummary, PostCategory } from '@/types';
 
 // 포스트 디렉토리 경로
@@ -114,11 +119,22 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     // 메타데이터와 콘텐츠 분리
     const { data, content } = matter(fileContents);
 
-    // 마크다운을 HTML로 변환
-    // remarkGfm: GitHub Flavored Markdown 지원 (테이블, 취소선 등)
+    // 로컬 Markdown을 HTML로 변환한다.
+    // raw HTML은 AST로 파싱한 뒤 기본 허용 목록으로 정제하고,
+    // heading id를 빌드 시점에 고정해 목차와 공유 링크를 안정적으로 유지한다.
     const processedContent = await remark()
       .use(remarkGfm)
-      .use(html, { sanitize: false })
+      .use(remarkRehype, { allowDangerousHtml: true })
+      .use(rehypeRaw)
+      .use(rehypeSanitize)
+      .use(rehypeSlug)
+      .use(rehypeAutolinkHeadings, {
+        behavior: 'wrap',
+        properties: {
+          className: ['heading-anchor'],
+        },
+      })
+      .use(rehypeStringify)
       .process(content);
     const contentHtml = processedContent.toString();
 

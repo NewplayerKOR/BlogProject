@@ -1,158 +1,147 @@
-import { notFound } from 'next/navigation';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { getPostBySlug, getAllPostSlugs, getAdjacentPosts } from '@/lib/posts';
-import PostNavigation from '@/components/post/PostNavigation';
-import TableOfContents from '@/components/post/TableOfContents';
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-/**
- * 동적 라우팅을 위한 정적 경로 생성
- * 빌드 시점에 모든 포스트의 경로를 미리 생성합니다.
- */
-export async function generateStaticParams() {
-  const slugs = getAllPostSlugs();
-  
-  return slugs.map((slug) => ({
-    slug: slug,
-  }));
+import { CodeCopyEnhancer } from "@/components/post/code-copy-enhancer";
+import PostNavigation from "@/components/post/PostNavigation";
+import TableOfContents from "@/components/post/TableOfContents";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  getAdjacentPosts,
+  getAllPostSlugs,
+  getPostBySlug,
+} from "@/lib/posts";
+
+interface PostPageProps {
+  params: Promise<{ slug: string }>;
 }
 
-/**
- * 메타데이터 생성 (SEO 최적화)
- */
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateStaticParams() {
+  return getAllPostSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  
+
   if (!post) {
     return {
-      title: '포스트를 찾을 수 없습니다',
+      title: "글을 찾을 수 없습니다",
     };
   }
 
   return {
-    title: `${post.title} | NewplayerKOR 블로그`,
+    title: post.title,
     description: post.description,
     openGraph: {
+      type: "article",
       title: post.title,
       description: post.description,
-      type: 'article',
       publishedTime: post.date,
       tags: post.tags,
     },
   };
 }
 
-/**
- * 개별 포스트 상세 페이지
- */
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
-  // 포스트가 없으면 404 페이지 표시
   if (!post) {
     notFound();
   }
 
-  // 이전 글 / 다음 글 가져오기
   const { prevPost, nextPost } = getAdjacentPosts(slug);
-
-  const formattedDate = format(new Date(post.date), 'yyyy년 MM월 dd일', {
-    locale: ko,
-  });
+  const date = new Date(post.date);
+  const formattedDate = Number.isNaN(date.getTime())
+    ? "날짜 없음"
+    : format(date, "yyyy년 MM월 dd일", { locale: ko });
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-12">
-      <div className="flex gap-12">
-        {/* 메인 콘텐츠 */}
-        <article className="flex-1 max-w-4xl">
-          {/* 헤더 영역 */}
-          <header className="mb-12">
-            {/* 카테고리 뱃지 */}
-            <div className="mb-4">
-              <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-50 rounded-full">
-                {post.category}
-              </span>
-            </div>
+    <div className="page-shell py-10 sm:py-14">
+      <Breadcrumb className="mb-10">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">홈</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/posts">전체 글</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{post.category}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-            {/* 제목 */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+      <div className="grid gap-12 xl:grid-cols-[minmax(0,48rem)_16rem] xl:justify-center xl:gap-20">
+        <article className="min-w-0">
+          <header className="mb-10 sm:mb-14">
+            <Badge variant="outline">{post.category}</Badge>
+            <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.18] tracking-[-0.05em] sm:text-6xl">
               {post.title}
             </h1>
-
-            {/* 메타 정보 */}
-            <div className="flex items-center gap-4 text-gray-600">
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+              {post.description}
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
               <time dateTime={post.date}>{formattedDate}</time>
-              {post.tags.length > 0 && (
-                <>
-                  <span>•</span>
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-sm text-gray-600 hover:text-gray-900"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
+              {post.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">
+                  {post.tags.map((tag) => (
+                    <span key={tag}>#{tag}</span>
+                  ))}
+                </div>
+              ) : null}
             </div>
-
-            {/* 구분선 */}
-            <hr className="mt-8 border-gray-200" />
+            <Separator className="mt-9" />
           </header>
 
-          {/* 본문 내용 */}
+          <TableOfContents variant="mobile" />
+
           <div
-            className="prose prose-lg max-w-none
-              prose-headings:font-bold prose-headings:text-gray-900
-              prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
-              prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
-              prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-              prose-p:text-gray-900 prose-p:leading-relaxed prose-p:mb-4
-              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-gray-900 prose-strong:font-bold
-              prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-medium prose-code:before:content-[''] prose-code:after:content-['']
-              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
-              prose-ul:list-disc prose-ul:ml-6 prose-ul:my-4
-              prose-ol:list-decimal prose-ol:ml-6 prose-ol:my-4
-              prose-li:text-gray-900 prose-li:my-2
-              prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700
-              prose-img:rounded-lg prose-img:shadow-md
-              prose-table:text-gray-900"
+            data-article-content
+            className="article-prose"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+          <CodeCopyEnhancer />
 
-          {/* 하단 태그 */}
-          {post.tags.length > 0 && (
-            <footer className="mt-12 pt-8 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                Tags
-              </h3>
+          {post.tags.length > 0 ? (
+            <footer className="mt-14">
+              <Separator className="mb-7" />
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    #{tag}
-                  </span>
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
                 ))}
               </div>
             </footer>
-          )}
+          ) : null}
 
-          {/* 이전 글 / 다음 글 네비게이션 */}
           <PostNavigation prevPost={prevPost} nextPost={nextPost} />
         </article>
 
-        {/* 우측 목차 */}
-        <aside className="w-64 flex-shrink-0">
-          <TableOfContents />
+        <aside className="hidden xl:block">
+          <TableOfContents variant="desktop" />
         </aside>
       </div>
     </div>

@@ -1,80 +1,98 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import type { PostSummary } from '@/types';
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { ArrowUpRightIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { PostSummary } from "@/types";
 
 interface PostCardProps {
   post: PostSummary;
+  compact?: boolean;
 }
 
-/**
- * 블로그 포스트 카드 컴포넌트
- * - 썸네일 이미지
- * - 제목, 설명, 날짜
- * - 태그 표시
- */
-export default function PostCard({ post }: PostCardProps) {
-  // 날짜 유효성 검사
+export default function PostCard({ post, compact = false }: PostCardProps) {
   const date = new Date(post.date);
-  const isValidDate = !isNaN(date.getTime());
-  
-  const formattedDate = isValidDate 
-    ? format(date, 'yyyy년 MM월 dd일', { locale: ko })
-    : '날짜 없음';
+  const formattedDate = Number.isNaN(date.getTime())
+    ? "날짜 없음"
+    : format(date, "yyyy.MM.dd", { locale: ko });
 
   return (
-    <Link href={`/posts/${post.slug}`}>
-      <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-        {/* 썸네일 */}
-        {post.thumbnail && (
-          <div className="relative w-full h-48 bg-gray-100">
+    <article
+      className={cn(
+        "group flex h-full flex-col border-t border-border pt-5",
+        compact ? "min-h-72" : "min-h-64 sm:grid sm:grid-cols-[0.25fr_0.75fr]",
+      )}
+    >
+      {!compact ? (
+        <div className="mb-5 flex items-start justify-between gap-4 sm:mb-0 sm:flex-col sm:justify-start">
+          <Badge variant="outline">{post.category}</Badge>
+          <time
+            dateTime={post.date}
+            className="font-mono text-xs text-muted-foreground"
+          >
+            {formattedDate}
+          </time>
+        </div>
+      ) : null}
+
+      <Link
+        href={`/posts/${post.slug}`}
+        className="flex h-full flex-col gap-4 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {post.thumbnail ? (
+          <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
             <Image
               src={post.thumbnail}
-              alt={post.title}
+              alt=""
               fill
-              className="object-cover"
+              sizes={compact ? "(min-width: 1024px) 30vw, 100vw" : "100vw"}
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
           </div>
-        )}
+        ) : null}
 
-        {/* 내용 */}
-        <div className="p-6">
-          {/* 카테고리 뱃지 */}
-          <div className="mb-3">
-            <span className="inline-block px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-50 rounded-full">
-              {post.category}
-            </span>
+        {compact ? (
+          <div className="flex items-center justify-between gap-4">
+            <Badge variant="outline">{post.category}</Badge>
+            <time
+              dateTime={post.date}
+              className="font-mono text-xs text-muted-foreground"
+            >
+              {formattedDate}
+            </time>
           </div>
+        ) : null}
 
-          {/* 제목 */}
-          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+        <div className="flex flex-1 flex-col gap-3">
+          <h2
+            className={cn(
+              "text-balance font-bold tracking-[-0.035em] transition-colors group-hover:text-primary",
+              compact ? "text-2xl" : "text-2xl sm:text-3xl",
+            )}
+          >
             {post.title}
-          </h3>
-
-          {/* 설명 */}
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+          </h2>
+          <p className="line-clamp-3 text-base leading-7 text-muted-foreground">
             {post.description}
           </p>
 
-          {/* 날짜 */}
-          <time className="text-xs text-gray-500">{formattedDate}</time>
-
-          {/* 태그 */}
-          {post.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded"
-                >
-                  #{tag}
-                </span>
+          {post.tags.length > 0 ? (
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[0.72rem] text-muted-foreground">
+              {post.tags.slice(0, compact ? 3 : 5).map((tag) => (
+                <span key={tag}>#{tag}</span>
               ))}
             </div>
-          )}
+          ) : null}
+
+          <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-primary">
+            기록 읽기
+            <ArrowUpRightIcon className="size-4" />
+          </span>
         </div>
-      </article>
-    </Link>
+      </Link>
+    </article>
   );
 }

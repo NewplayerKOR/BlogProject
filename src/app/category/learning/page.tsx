@@ -1,42 +1,33 @@
-import PostCard from '@/components/post/PostCard';
-import { getPostsByCategory } from '@/lib/posts';
+import type { Metadata } from "next";
 
-/**
- * 학습내용 카테고리 페이지
- */
-export const metadata = {
-  title: 'TIL | 기술 블로그',
-  description: '매일 배운 내용을 기록하고 공유합니다.',
+import { EmptyPostState } from "@/components/post/empty-post-state";
+import { PostList } from "@/components/post/post-list";
+import { PageIntro } from "@/components/site/page-intro";
+import { getPostsByCategory } from "@/lib/posts";
+
+export const metadata: Metadata = {
+  title: "학습 기록",
+  description: "백엔드 개발 과정에서 학습하고 직접 확인한 내용을 기록합니다.",
 };
 
 export default function LearningPage() {
-  const posts = getPostsByCategory('학습내용');
+  const posts = getPostsByCategory("학습내용");
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-12">
-      {/* 헤더 */}
-      <header className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          📚 TIL (Today I Learned)
-        </h1>
-        <p className="text-gray-600">
-          매일 배운 내용을 기록하고 공유합니다.
-        </p>
-      </header>
-
-      {/* 포스트 목록 */}
-      {posts.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">
-            아직 작성된 학습내용 포스트가 없습니다.
-          </p>
-        </div>
+    <div className="page-shell pb-24">
+      <PageIntro
+        eyebrow="Learning notes"
+        title="배운 내용을 직접 확인합니다."
+        description="문서를 읽는 데서 끝내지 않고 작은 구현과 테스트로 확인한 내용을 다음 개발의 기준으로 남깁니다."
+        count={posts.length}
+      />
+      {posts.length > 0 ? (
+        <PostList posts={posts} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
+        <EmptyPostState
+          title="학습 기록을 정리하고 있습니다."
+          description="프로젝트 안에서 확인한 내용을 우선 정리한 뒤, 반복해서 참고할 수 있는 학습 기록을 공개할 예정입니다."
+        />
       )}
     </div>
   );

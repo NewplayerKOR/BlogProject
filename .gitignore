@@ -42,3 +42,6 @@ next-env.d.ts
 
 # GEMINI
 GEMINI.md
+
+# local documentation (personal and development notes)
+/docs/
